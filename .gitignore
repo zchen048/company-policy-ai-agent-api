@@ -215,3 +215,6 @@ __marimo__/
 
 # ChromaDB persistence
 *.bin
+
+# local models
+agents/local_models/
