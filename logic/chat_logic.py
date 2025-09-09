@@ -3,12 +3,13 @@ from sqlmodel import Session, select, func
 from ..models import IntentEnum, Chat
 from ..utils import sg_datetime
 from ..schemas.chat_schemas import UpdateChat
+from ..exceptions import UserNotFoundException, ChatNotFoundException
 
 def create_chat(session: Session, user_id: int) -> Chat:
     # check if user exist
     user = session.get(User, user_id)
     if not user:
-        raise ValueError("No such user")
+        raise UserNotFoundException()
 
     # get the front name of user and used for chat title
     first_name = user.name.split(" ")[0] 
@@ -34,7 +35,7 @@ def get_user_chats(session: Session, user_id: int) -> List[Chat]:
     # Check if user exist
     user = session.get(User, user_id)
     if not user:
-        raise ValueError("No such user")
+        raise UserNotFoundException()
     
     # query DB for all chats with user id
     chats = session.exec(
@@ -43,16 +44,19 @@ def get_user_chats(session: Session, user_id: int) -> List[Chat]:
     return chats
 
 def get_chat_by_id(session: Session, id: int) -> Chat:
-    return session.get(Chat, id)
+    chat = session.get(Chat, id)
+    if not chat:
+        raise ChatNotFoundException()
+    return chat
 
 def update_chat(session: Session, id: int, data: UpdateChat) -> Chat:
     chat = session.get(Chat, id)
     if not chat:
-        return None
+        raise ChatNotFoundException()
     
     updates = data.model_dump(exclude_unset=True)
     if not updates:
-        raise ValueError("No fields provided to update")
+        raise NoFieldsToUpdateException()
 
     for field, value in updates.items():
         setattr(chat, field, value)
@@ -64,13 +68,11 @@ def update_chat(session: Session, id: int, data: UpdateChat) -> Chat:
     session.refresh(chat)
     return chat
     
-
-def delete_chat(session: Session, id: int) -> bool:
+def delete_chat(session: Session, id: int):
     chat = session.get(Chat, id)
     if not chat:
-        return False  
+        raise ChatNotFoundException()
     
     session.delete(chat)
     session.commit()
-    return True
 

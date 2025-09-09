@@ -14,3 +14,11 @@ class UserNotFoundException(Exception):
     """Raised when a user cannot be found in the database."""
     pass
 
+# ====================
+# chat exceptions
+# ====================
+
+class ChatNotFoundException(Exception):
+    """Raised when a chat cannot be found in the database."""
+    pass
+
