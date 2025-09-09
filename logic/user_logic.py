@@ -3,6 +3,7 @@ from sqlmodel import Session, select
 from ..models import RankEnum, User
 from ..schemas.user_schemas import UpdateUser
 from ..utils import sg_datetime
+from ..exceptions import UserNotFoundException, NoFieldsToUpdateException
 
 def create_user(
     session: Session, 
@@ -26,7 +27,10 @@ def create_user(
     return user
 
 def get_user_by_id(session: Session, id: int):
-    return session.get(User, id)
+    user = session.get(User, id)
+    if not user:
+        raise UserNotFoundException()
+    return user
 
 def get_users(
     session: Session,
@@ -60,11 +64,11 @@ def update_user(
     
     user = session.get(User, id)
     if not user:
-        return None
+        raise UserNotFoundException()
     
     updates = data.model_dump(exclude_unset=True)
     if not updates:
-        raise ValueError("No fields provided to update")
+        raise NoFieldsToUpdateException()
 
     for field, value in updates.items():
         setattr(user, field, value)
@@ -76,11 +80,10 @@ def update_user(
     session.refresh(user)
     return user
 
-def delete_user(session: Session, id: int) -> bool:
+def delete_user(session: Session, id: int):
     user = session.get(User, id)
     if not user:
-        return False  
+       raise UserNotFoundException()
     
     session.delete(user)
     session.commit()
-    return True
