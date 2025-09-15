@@ -70,7 +70,7 @@ def classify_message_intent(state: DetailsGraphState) -> DetailsGraphState:
         result = re.findall(result_pattern, response.content, re.DOTALL)[0]
     except: 
         result = 'None'
-        logger.warning("intent result None")
+        logger.warning("Regex extract intent result None")
     
     state['last_intent'] = result
     logger.info(f"result: {result} added to last intent state")
@@ -83,37 +83,38 @@ def intent_conditional(state: DetailsGraphState) -> str:
     '''
     Determine based on intent whether agent has to ask user again, user user for more information or remove effective context
     '''
-    print("---------------------------Entering intent conditional edge---------------------------")
+    logger.debug("-------- Entering intent conditional edge --------")
     
     if state['last_intent'] == "Policy related — different policy":
-        print("Policy related — different policy -> remove")
+        logger.info(f"last intent: {state['last_intent']} -> remove")
         return "remove"
     elif state['last_intent'] == "Policy related — same policy" or state['last_intent'] == "Policy related" :
-        print("Policy related /— same policy -> get details")
+        logger.info(f"last intent: {state['last_intent']} -> get details")
         return "get details"
     elif state['last_intent'] == "end":
+        logger.info(f"last intent: {state['last_intent']} -> exit")
         return "end"
     else:
-        print("Non-policy related/None -> loop")
+        logger.info(f"last intent: {state['last_intent']} -> divert")
         return "divert"
 
 def effective_context_removal(state: DetailsGraphState) -> DetailsGraphState:
     '''
     Remove contents in effective chat history and document summary
     '''
-    print("---------------------------Entering removal node---------------------------")
+    logger.debug("-------- Entering context removal node --------")
 
     state['effective_chat_history'].clear()
     state['document_summary'] = ''
     
+    logger.debug("-------- Normal exit of context removal node --------")
     return state
 
 def get_more_details(state: DetailsGraphState) -> DetailsGraphState:
     '''
     prompt to that allows agent to ask user for details it need for policy query
     '''
-
-    print("---------------------------Entering get more details node---------------------------")
+    logger.debug("-------- Entering get more details node --------")
 
     useful_input = state['last_user_message']
     state['effective_chat_history'].append(HumanMessage(content=useful_input))
@@ -149,7 +150,7 @@ def get_more_details(state: DetailsGraphState) -> DetailsGraphState:
     human = '''
         Here is the chat history: {effective_chat_history}
 
-        Please be concise.
+        Please reply in a concise manner using <answer></answer> tags.
 
         <|eot_id|><|start_header_id|>assistant<|end_header_id|>
         '''
@@ -160,28 +161,31 @@ def get_more_details(state: DetailsGraphState) -> DetailsGraphState:
     try:
         response = chain.invoke({'effective_chat_history': state['effective_chat_history']})
     except Exception as e:
-        print(f'Error in asking for specific details: {e}')
-    print(response)
-    print(response.content)
-
+        logger.warning(f"Error in asking for specific details: {e}")
+    
+    logger.info(f"response: {response}")
 
     try:
         answer_pattern = r'<answer>\s*(.*?)\s*</answer>'
         answer = re.findall(answer_pattern, response.content, re.DOTALL)[0]
-        print(answer)
+        logger.info(f"answer: {answer}")
     except: 
         answer = 'Can you provide me with more details?'
+        logger.warning(f"Regex extract error going with default")
     
-    state['effective_chat_history'].append(AIMessage(content=answer))
     if answer != "Yes":
         state['sufficient_details'] = "No"
-
+        state['effective_chat_history'].append(AIMessage(content=answer))
+        logger.info(f"Insufficient information provide by user")
+    
+    logger.debug("-------- Normal exit of get more details node --------")
     return state
 
 def divert_to_policy(state: DetailsGraphState) -> DetailsGraphState:
     '''
     prompt to that allows agent to divert user back to policy questions.
     '''
+    logger.debug("-------- Entering divert node --------")
 
     system = '''
         <|begin_of_text|><|start_header_id|>system<|end_header_id|>
@@ -191,7 +195,7 @@ def divert_to_policy(state: DetailsGraphState) -> DetailsGraphState:
         Rules:
         - Do not attempt to answer the user’s non-policy question.  
         - Always redirect them back toward policy in a short, professional, and encouraging way.  
-        - Always use the <answer></answer> tags. 
+        - Always put your reply in <answer></answer> tags. 
     
         <|eot_id|><|start_header_id|>user<|end_header_id|>
     '''
@@ -210,15 +214,17 @@ def divert_to_policy(state: DetailsGraphState) -> DetailsGraphState:
     try:
         response = chain.invoke({'last_user_message': state['last_user_message']})
     except Exception as e:
-        print(f'Error in asking for specific details: {e}')
-    print(response)
+        logger.warning(f'Error in diverting user to policy questions: {e}')
+    logger.debug(f"response:{response}")
 
     try:
         answer_pattern = r'<answer>\s*(.*?)\s*</answer>'
         answer = re.findall(answer_pattern, response.content, re.DOTALL)[0]
     except: 
         answer = 'Do you have any company policies related queries?'
+        logger.warning(f"Regex extract error. Default: {answer}")
 
     state['effective_chat_history'].append(AIMessage(content=answer))
-
+    
+    logger.debug("-------- Normal exit of divert node --------")
     return state
