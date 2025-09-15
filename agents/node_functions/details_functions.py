@@ -1,21 +1,23 @@
 import re
 from ..graph_states import DetailsGraphState
 from ..llms import llm
+from ...logger import get_logger
 from langchain_core.messages import BaseMessage, ToolMessage, HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_huggingface import HuggingFaceEmbeddings
 
+logger = get_logger(__name__)
+
 def classify_message_intent(state: DetailsGraphState) -> DetailsGraphState:
     '''
     Prompt to classify intent of last user message in relation to effective chat history into 1 of 3 classes
     '''
-
-    print("---------------------------Entering intent node---------------------------")
+    logger.debug("-------- Entering intent node --------")
 
     if state['last_user_message'] == "exit":
-        print("---------------------------ending---------------------------")
         state['last_intent'] = "end"
+        logger.debug("-------- User exit of intent node --------")
         return state
 
     system = '''
@@ -61,16 +63,19 @@ def classify_message_intent(state: DetailsGraphState) -> DetailsGraphState:
              'last_user_message': state['last_user_message']
             })
     except Exception as e:
-        print(f'Error in identifying intent: {e}')
+        logger.warning(f"Error in identifying intent: {e}")
 
     try:
         result_pattern = r'<result>\s*(.*?)\s*</result>'
         result = re.findall(result_pattern, response.content, re.DOTALL)[0]
     except: 
         result = 'None'
+        logger.warning("intent result None")
     
-    print(f'result: {result}')
     state['last_intent'] = result
+    logger.info(f"result: {result} added to last intent state")
+    
+    logger.debug("-------- Normal exit of intent node --------")
     
     return state
 
