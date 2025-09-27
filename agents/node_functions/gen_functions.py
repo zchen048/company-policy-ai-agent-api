@@ -72,6 +72,7 @@ def retrieve_policy(state: GenGraphState) -> GenGraphState:
 
     for t in tool_calls:
         if not t['name'] in tools_dict:
+            logger.warning(f"tool with incorrect name was called")
             result = "Incorrect tool name."
         else:
             query=t['args'].get('query', '')
