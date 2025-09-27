@@ -23,8 +23,8 @@
 <br />
 
 ## Project Description
-<p>Company policies are often scattered across multiple documents, making it hard for employees to quickly find accurate answers. This project solves that problem by providing an AI-powered agent that retrieves, understands, and summarizes policy information in response to natural language queries.</p>
-
+<p>Company policies are often scattered across multiple documents, making it hard for employees to quickly find accurate answers. This project solves that problem by providing an AI-powered agent that retrieves, understands, and summarizes policy information in response to natural language queries. Policy data used in this project was generated using ChatGPT.</p>
+ 
 <p>Built as an API, it allows seamless integration into internal tools or chat interfaces, enabling users to get fast, grounded, and reliable answers without manually searching through documents.</p>
 
 <br />
