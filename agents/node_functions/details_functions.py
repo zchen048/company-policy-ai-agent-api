@@ -1,7 +1,7 @@
 import re
+from logger import get_logger
 from ..graph_states import DetailsGraphState
 from ..llms import llm
-from ...logger import get_logger
 from langchain_core.messages import BaseMessage, ToolMessage, HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser

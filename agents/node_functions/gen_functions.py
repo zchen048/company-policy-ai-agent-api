@@ -1,4 +1,5 @@
 import re
+from logger import get_logger
 from ..graph_states import GenGraphState
 from ..llms import llm
 from langchain_core.messages import BaseMessage, ToolMessage, HumanMessage, AIMessage
@@ -6,10 +7,14 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from .tool_functions import tools_dict
 
+logger = get_logger(__name__)
+
 def decide_retrieve(state: GenGraphState) -> GenGraphState:
     '''
     Prompt to determine if more company policy information is needed to be retrieved.
     '''
+
+    logger.debug("-------- Entering decide retrieve node --------")
     
     system = '''
         <|begin_of_text|><|start_header_id|>system<|end_header_id|>
@@ -31,21 +36,27 @@ def decide_retrieve(state: GenGraphState) -> GenGraphState:
 
     try:
         response = chain.invoke({'last_human_message': state['last_human_message']})
-        print(response)
+        logger.info(f"{response} was returned by llm in decide retrieve node")
     except Exception as e:
+        logger.warning(f"Error processing input for retrieval")
         response = ToolMessage(content="Error processing input for retrieval")
     
     if response.content == "SKIP":
+        logger.info(f"Skip retrieval")
         response = ToolMessage(content="SKIP")
     
     state['tool_invoke'].append(response)
-    
+    logger.info(f"response: {response} added to tool_invoke state")
+
+    logger.debug("-------- Normal exit of decide retrieve node --------")
     return state
 
 def need_retrieve(state: GenGraphState) -> GenGraphState:
     '''
     Check if tool call is last message
     '''
+    logger.debug("-------- Entering retrieve check conditional edge --------")
+    
     res = state['tool_invoke'][-1]
     return hasattr(res, 'tool_invoke') and len(res.tool_calls)>0
 
@@ -53,6 +64,8 @@ def retrieve_policy(state: GenGraphState) -> GenGraphState:
     '''
     function to retrieve documents retrieved from tool call
     '''
+
+    logger.debug("-------- Entering retrieve policy node --------")
 
     tool_calls = state['tool_invoke'][-1].tool_calls
     results = []
@@ -68,7 +81,7 @@ def retrieve_policy(state: GenGraphState) -> GenGraphState:
                 "query":t['args'].get('query', ''),
                 "domain":t['args'].get('domain', '')
             })
-            print(result)
+            logger.info(f"result: {result} from a tool call performed")
         results.append(
             ToolMessage(
                 tool_call_id = t['id'], 
@@ -77,13 +90,19 @@ def retrieve_policy(state: GenGraphState) -> GenGraphState:
             ))
     
     state['tool_invoke'].append(results)
+    logger.info(f"{results} have been added to from tool_invoke state")
+    logger.debug("-------- Normal exit of retrieve policy node --------")
     return state
 
 def document_summary(state: GenGraphState) -> GenGraphState:
     '''
     Prompt to summarise documents retrieved in relation to user query.
     '''
+
+    logger.debug("-------- Entering document summary node --------")
+
     if type(state['tool_invoke'][-1][-1]) != ToolMessage:
+        logger.info("No document match query, retrival result is empty.")
         return state
     
     documents = state['tool_invoke'][-1][-1].content
@@ -123,44 +142,62 @@ def document_summary(state: GenGraphState) -> GenGraphState:
         response = chain.invoke({'query': query, 'documents': documents})
         print(response)
     except Exception as e:
-        print(f'Error in Summarizing Information: {e}')
+        logger.warning(f"Error in Summarizing Information: {e}")
 
     try:
         summary_pattern = r'Summary:\s*(.*?)(?=\n|\Z)'
         summary = re.findall(summary_pattern, response.content, re.DOTALL)[0]
     except: 
+        logger.warning(f"Regex for Summarizing node output failed, default summary is none: {e}")
         summary = 'None'
     
     state['document_summary'] = summary
-
+    logger.info(f"Summary:{summary} was added document_summary state ")
+    
+    logger.debug("-------- Normal exit of document summary node --------")
     return state
 
 def check_context_length(state: GenGraphState) -> GenGraphState:
     '''
     Function that uses the LLM tokeniser to check if prompt will be greater than context window
     '''
+    logger.debug("-------- Entering check context length node --------")
+    # Can't permission for llama huggingface to get tokeniser 
     state['within_token_limit'] = "Yes"
+    logger.debug("-------- Normal exit of check context length node --------")
     return state
 
 def context_length_conditional(state: GenGraphState) -> str:
     '''
     Condtional if trucation of effective chat history is needed
     '''
+
+    logger.debug("-------- Entering context length check conditional edge --------")
+
     if state['within_token_limit'] == "Yes":
+        logger.info("Context length is within limit")
         return "generate"
     else:
+        logger.info("Context length exceeds limit")
         return "truncate"
 
 def truncate_chat_history(state: GenGraphState) -> GenGraphState:
     '''
     Truncates the chat history to ensure prompt does not exceed context window
     '''
+    logger.debug("-------- Entering truncate chat history node --------")
+    state['effective_chat_history'] = state['effective_chat_history'][4:]
+    logger.info("Remove 2 oldest user-llm interaction ie 4 messages")
+    logger.debug("-------- Normal exit of truncate chat history node --------")
     return state
 
 def answer_user_query(state: GenGraphState) -> GenGraphState:
     '''
     Prompt that uses retrieved context and chat history to answer user's input query.
     '''
+
+    logger.debug("-------- Entering answer user query node --------")
+
     system = '''
         <|begin_of_text|><|start_header_id|>system<|end_header_id|>
         You are a highly knowledgeable, concise, and unbiased AI assistant.
@@ -202,10 +239,12 @@ def answer_user_query(state: GenGraphState) -> GenGraphState:
             'messages': state['effective_chat_history'],
             'context': state['document_summary']
         })
-        print(response)
+        logger.info(f"generated response from llm: {response} ")
     except Exception as e:
-        response = "Error processing input"
+        logger.warning(f"Error occured during generation: {e}")
+        response = "Error generating"
     
     state['effective_chat_history'].append(response)
-
+    
+    logger.debug("-------- Normal exit of answer user query node --------")
     return state
