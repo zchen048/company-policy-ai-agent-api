@@ -38,7 +38,7 @@ def get_users_endpoint(
     rank: Optional[RankEnum] = None,
     title: Optional[str] = None
 ):
-    """ API endpoint to get all users info. """
+    """ API endpoint to get all users with certain fields. """
     return get_users(
         session=session, 
         name=name, 
