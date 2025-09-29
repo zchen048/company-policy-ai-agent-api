@@ -11,6 +11,7 @@ router = APIRouter()
 
 @router.post("/users/", response_model=ReadUser)
 def create_user_endpoint(user: CreateUser, session: Session = Depends(get_session)):
+    """ API endpoint to create a new user and return the created user's info. """
     return create_user(
         session=session, 
         name=user.name, 
@@ -22,6 +23,7 @@ def create_user_endpoint(user: CreateUser, session: Session = Depends(get_sessio
 
 @router.get("/users/{user_id}", response_model=ReadUser)
 def get_user_by_id_endpoint(user_id: int, session: Session = Depends(get_session)):
+    """ API endpoint to get a user info using id. """
     try:
         return get_user_by_id(session=session, id=user_id)
     except UserNotFoundException:
@@ -36,6 +38,7 @@ def get_users_endpoint(
     rank: Optional[RankEnum] = None,
     title: Optional[str] = None
 ):
+    """ API endpoint to get all users info. """
     return get_users(
         session=session, 
         name=name, 
@@ -47,6 +50,7 @@ def get_users_endpoint(
 
 @router.patch("/users/", response_model=ReadUser)
 def update_user_endpoint(id:int, to_change:UpdateUser, session: Session = Depends(get_session)):
+    """ API endpoint update info of user of a particular id. """
     try:
         user = update_user(session=session, id=id, data=to_change)
     except UserNotFoundException:
@@ -57,6 +61,7 @@ def update_user_endpoint(id:int, to_change:UpdateUser, session: Session = Depend
 
 @router.delete("/users/{user_id}", status_code=204)
 def delete_user_endpoint(user_id: int, session: Session = Depends(get_session)):
+    """ API endpoint to delete user of a particular id. """
     try:
         delete_user(session=session, id=user_id)
     except UserNotFoundException:
