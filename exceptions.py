@@ -22,6 +22,10 @@ class ChunkIDInvalidException(Exception):
         self.chunk_id = chunk_id
         super().__init__(f"Chunk id '{chunk_id}' not found in collection.")
 
+class MetadataUpdateException(Exception):
+    """Raised when updating metadata in Chroma fails"""
+    pass
+
 # ====================
 # user exceptions
 # ====================
