@@ -4,8 +4,12 @@ from ..models import IntentEnum, Chat
 from ..utils import sg_datetime
 from ..schemas.chat_schemas import UpdateChat
 from ..exceptions import UserNotFoundException, ChatNotFoundException
+from ..logger import get_logger
+
+logger = get_logger(__name__)
 
 def create_chat(session: Session, user_id: int) -> Chat:
+    """ Create and persist a new chat for a user in the database."""
     # check if user exist
     user = session.get(User, user_id)
     if not user:
@@ -29,9 +33,11 @@ def create_chat(session: Session, user_id: int) -> Chat:
     session.add(chat)
     session.commit()
     session.refresh(chat)  # refresh to get generated ID
+    logger.info(f"Chat `{title}` created for {user.name} ")
     return chat
 
 def get_user_chats(session: Session, user_id: int) -> List[Chat]:
+    """ Get all chats of a user."""
     # Check if user exist
     user = session.get(User, user_id)
     if not user:
@@ -44,12 +50,14 @@ def get_user_chats(session: Session, user_id: int) -> List[Chat]:
     return chats
 
 def get_chat_by_id(session: Session, id: int) -> Chat:
+    """ Get chat with a particular id. """
     chat = session.get(Chat, id)
     if not chat:
         raise ChatNotFoundException()
     return chat
 
 def update_chat(session: Session, id: int, data: UpdateChat) -> Chat:
+    """ Update specified fields of chat given by specific id. """
     chat = session.get(Chat, id)
     if not chat:
         raise ChatNotFoundException()
@@ -66,13 +74,16 @@ def update_chat(session: Session, id: int, data: UpdateChat) -> Chat:
     session.add(chat)
     session.commit()
     session.refresh(chat)
+    logger.info(f"Chat `{chat.id}` updated. ")
     return chat
     
 def delete_chat(session: Session, id: int):
+    """ delete chat given by specific id. """
     chat = session.get(Chat, id)
     if not chat:
         raise ChatNotFoundException()
     
     session.delete(chat)
     session.commit()
+    logger.info(f"Chat `{chat.id}` deleted. ")
 

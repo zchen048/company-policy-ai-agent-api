@@ -84,7 +84,7 @@ def update_user(
     session.add(user)
     session.commit()
     session.refresh(user)
-    logger.info(f"User `{name}` updated ")
+    logger.info(f"User `{user.id}` updated ")
     return user
 
 def delete_user(session: Session, id: int):
