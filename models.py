@@ -103,8 +103,21 @@ class Message(SQLModel, table=True):
     role: RoleEnum
     content: str
     effective: bool = Field(default=True)  
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=sg_datetime.get_sgt_time)
     
     chat: Chat = Relationship(back_populates="messages")
 
 
+class Document(SQLModel, table=True):
+    """
+    Represents a document object. 
+    
+    Attributes:
+        hash: Unique identifier of message.
+        source: Chat id of the chat that message belongs to
+        created_at: Timestamp when the message was created.
+ 
+    """
+    hash: str = Field(primary_key=True)
+    source: str
+    created_at: datetime.datetime = Field(default_factory=sg_datetime.get_sgt_time)
