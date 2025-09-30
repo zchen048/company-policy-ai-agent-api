@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 from ..database import get_session
 from ..schemas.chat_schemas import ReadChat, ReadState, UpdateChat
-from ..logic.chat_logic import create_chat, get_user_chats, get_chat_by_id
+from ..logic.chat_logic import create_chat, get_user_chats, get_chat_by_id, update_chat, delete_chat
 from ..exceptions import UserNotFoundException, ChatNotFoundException, NoFieldsToUpdateException
 
 router = APIRouter()
@@ -17,7 +17,7 @@ def create_chat_endpoint(user_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="User not found")
     return chat
 
-@router.get("/users/{user_id}}/chats", response_model=List[ReadChat])
+@router.get("/users/{user_id}/chats", response_model=List[ReadChat])
 def get_user_chats_endpoint(user_id: int, session: Session = Depends(get_session)):
     """ API endpoint to get all chats of a user. """
     try:
@@ -59,4 +59,4 @@ def delete_chat_endpoint(chat_id: int, session: Session = Depends(get_session)):
     try:
         return delete_chat(session=session, id=chat_id)
     except ChatNotFoundException:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Chat not found")

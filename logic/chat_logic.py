@@ -1,6 +1,6 @@
 from typing import Optional, List, Union
 from sqlmodel import Session, select, func
-from ..models import IntentEnum, Chat
+from ..models import IntentEnum, Chat, User
 from ..utils import sg_datetime
 from ..schemas.chat_schemas import UpdateChat
 from ..exceptions import UserNotFoundException, ChatNotFoundException
