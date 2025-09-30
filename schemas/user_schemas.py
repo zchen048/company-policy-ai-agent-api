@@ -77,5 +77,5 @@ class UpdateUser(BaseModel):
         min_length=2, 
         max_length=50, 
         description="User's updated job title",
-        example="HR senior executive"
+        example="Finance executive"
     )

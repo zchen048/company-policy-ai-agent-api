@@ -120,4 +120,4 @@ class Document(SQLModel, table=True):
     """
     hash: str = Field(primary_key=True)
     source: str
-    created_at: datetime.datetime = Field(default_factory=sg_datetime.get_sgt_time)
+    created_at: datetime = Field(default_factory=sg_datetime.get_sgt_time)

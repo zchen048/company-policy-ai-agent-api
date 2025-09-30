@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 from ..database import get_session
 from ..schemas.user_schemas import CreateUser, ReadUser, UpdateUser
-from ..logic.user_logic import create_user, get_user_by_id
+from ..logic.user_logic import create_user, get_user_by_id, get_users, update_user, delete_user
 from ..models import RankEnum
 from ..exceptions import UserNotFoundException, NoFieldsToUpdateException
 

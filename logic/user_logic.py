@@ -51,7 +51,7 @@ def get_users(
 
     if name:
         statement = statement.where(User.name == name)
-    if name:
+    if email:
         statement = statement.where(User.email == email)
     if department:
         statement = statement.where(User.department == department)
@@ -84,7 +84,7 @@ def update_user(
     session.add(user)
     session.commit()
     session.refresh(user)
-    logger.info(f"User `{user.id}` updated ")
+    logger.info(f"User with id `{user.id}` updated ")
     return user
 
 def delete_user(session: Session, id: int):
@@ -95,4 +95,4 @@ def delete_user(session: Session, id: int):
     
     session.delete(user)
     session.commit()
-    logger.info(f"User with `{id}` deleted ")
+    logger.info(f"User with id `{id}` deleted ")
