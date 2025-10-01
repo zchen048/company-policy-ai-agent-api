@@ -74,7 +74,7 @@ def update_chat(session: Session, id: int, data: UpdateChat) -> Chat:
     session.add(chat)
     session.commit()
     session.refresh(chat)
-    logger.info(f"Chat `{chat.id}` updated. ")
+    logger.info(f"Chat id `{chat.id}` updated.")
     return chat
     
 def delete_chat(session: Session, id: int):
@@ -85,5 +85,5 @@ def delete_chat(session: Session, id: int):
     
     session.delete(chat)
     session.commit()
-    logger.info(f"Chat `{chat.id}` deleted. ")
+    logger.info(f"Chat id `{chat.id}` deleted.")
 

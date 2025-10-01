@@ -1,7 +1,8 @@
-from ..logger import get_logger
+import os
+from logger import get_logger
 from sqlmodel import Field, Session, select
-from ..database import get_session
-from ..exceptions import CollectionNotFoundException, ChunkIDInvalidException, MetadataUpdateException
+from database import get_session_direct
+from exceptions import CollectionNotFoundException, ChunkIDInvalidException, MetadataUpdateException
 from typing import List, Dict, Optional, Any
 import hashlib
 from langchain.schema import Document
@@ -11,6 +12,13 @@ from langchain_huggingface import HuggingFaceEmbeddings
 import chromadb
 from chromadb.utils import embedding_functions
 from chromadb.api.models.Collection import Collection
+
+model_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents", "local_models", "arctic-embed-m")
+
+client = chromadb.PersistentClient(path="/agents/policy_vector_db")
+sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
+    model_name=model_path
+)
 
 logger = get_logger(__name__)
 
@@ -74,38 +82,36 @@ def dir_pdfs_to_document(dir_path: str) -> List[Document]:
 
 def filter_by_hash(
     all_documents: List[Document], 
-    session: Session = Depends(get_session)
 ) -> List[Document]:
     """
     Filter out documents whose content hash already exists in SQLite db.
 
     Args:
         all_documents (List[Document]): List of Document objects loaded from PDFs.
-        session (Session): SQLModel session for DB operations.
 
     Returns:
         filtered (List[Document]): Filtered documents with 'doc_hash' added to metadata.
     """
     filtered = []
+    with get_session_direct() as session:
+        for doc in all_documents:
+            # Hash based on document text
+            text = doc.page_content
+            hash_val = hashlib.md5(text.encode("utf-8")).hexdigest()
 
-    for doc in all_documents:
-        # Hash based on document text
-        text = doc.page_content
-        hash_val = hashlib.md5(text.encode("utf-8")).hexdigest()
+            # Check for existing hash
+            statement = select(Document).where(Document.hash == hash_val)
+            result = session.exec(statement).first()
 
-        # Check for existing hash
-        statement = select(Document).where(Document.hash == hash_val)
-        result = session.exec(statement).first()
-
-        if not result:  # new doc → save and keep
-            doc.metadata["doc_hash"] = hash_val # Attach hash into metadata
-            filtered.append(doc)
-            record = Document(
-                hash=hash_val,
-                source=doc.metadata.get("source", "unknown"),
-            )
-            session.add(record)
-            session.commit()
+            if not result:  # new doc → save and keep
+                doc.metadata["doc_hash"] = hash_val # Attach hash into metadata
+                filtered.append(doc)
+                record = Document(
+                    hash=hash_val,
+                    source=doc.metadata.get("source", "unknown"),
+                )
+                session.add(record)
+                session.commit()
 
     return filtered
 
@@ -505,7 +511,7 @@ if __name__ == "__main__":
 
     # loading the model for the embedding function
     sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name="/content/local_model"
+        model_name="../agents/local_models/arctic-embed-m" 
     )
 
     model_path = "../agents/local_models/arctic-embed-m" 
