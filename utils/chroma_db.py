@@ -487,6 +487,12 @@ class CollectionUtils:
 
 
 
+
+# ====================
+# old utils code
+# ====================
+
+"""
 def add_document(model_path, collection, chromadb_path, pdf_path, chunk_size=500, chunk_overlap=50):
     '''
     Adding a document to a collection chromadb. If collection doesnt exist it will create new one.
@@ -521,20 +527,11 @@ def add_document(model_path, collection, chromadb_path, pdf_path, chunk_size=500
     # adding document to collection
     vector_store.add_documents(chunks)
 
-
 if __name__ == "__main__":
-    embeddings = HuggingFaceEmbeddings(model_name="/content/local_model")
-
-    # define chroma native client object to perform operation
-    client = chromadb.PersistentClient(path="./chroma_native_test")
-
-    # loading the model for the embedding function
-    sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name="../agents/local_models/arctic-embed-m" 
-    )
-
     model_path = "../agents/local_models/arctic-embed-m" 
     collection = "hr_policies"
     chromadb_path = "../agents/policy_vector_db"
     pdf_path = "../documents/fake_HR_policies.pdf"
     add_document(model_path, collection, chromadb_path, pdf_path, chunk_size=1000, chunk_overlap=100)
+
+"""
