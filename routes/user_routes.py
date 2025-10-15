@@ -9,7 +9,7 @@ from ..exceptions import UserNotFoundException, NoFieldsToUpdateException
 
 router = APIRouter()
 
-@router.post("/users/", response_model=ReadUser)
+@router.post("/users/", tags=["User"], response_model=ReadUser)
 def create_user_endpoint(user: CreateUser, session: Session = Depends(get_session)):
     """ API endpoint to create a new user and return the created user's info. """
     return create_user(
@@ -21,7 +21,7 @@ def create_user_endpoint(user: CreateUser, session: Session = Depends(get_sessio
         title=user.title
     )
 
-@router.get("/users/{user_id}", response_model=ReadUser)
+@router.get("/users/{user_id}", tags=["User"], response_model=ReadUser)
 def get_user_by_id_endpoint(user_id: int, session: Session = Depends(get_session)):
     """ API endpoint to get a user info using id. """
     try:
@@ -29,7 +29,7 @@ def get_user_by_id_endpoint(user_id: int, session: Session = Depends(get_session
     except UserNotFoundException:
         raise HTTPException(status_code=404, detail="User not found")
 
-@router.get("/users/", response_model=List[ReadUser])
+@router.get("/users/", tags=["User"], response_model=List[ReadUser])
 def get_users_endpoint(
     session: Session = Depends(get_session),
     name: Optional[str] = None,
@@ -48,7 +48,7 @@ def get_users_endpoint(
         title=title
     )
 
-@router.patch("/users/", response_model=ReadUser)
+@router.patch("/users/", tags=["User"], response_model=ReadUser)
 def update_user_endpoint(id:int, to_change:UpdateUser, session: Session = Depends(get_session)):
     """ API endpoint update info of user of a particular id. """
     try:
@@ -59,7 +59,7 @@ def update_user_endpoint(id:int, to_change:UpdateUser, session: Session = Depend
         raise HTTPException(status_code=400, detail="No fields provided to update")    
     return user
 
-@router.delete("/users/{user_id}", status_code=204)
+@router.delete("/users/{user_id}", tags=["User"], status_code=204)
 def delete_user_endpoint(user_id: int, session: Session = Depends(get_session)):
     """ API endpoint to delete user of a particular id. """
     try:

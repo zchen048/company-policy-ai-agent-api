@@ -8,7 +8,7 @@ from ..exceptions import UserNotFoundException, ChatNotFoundException, NoFieldsT
 
 router = APIRouter()
 
-@router.post("/users/{user_id}/chats", response_model=ReadChat)
+@router.post("/users/{user_id}/chats", tags=["Chat"], response_model=ReadChat)
 def create_chat_endpoint(user_id: int, session: Session = Depends(get_session)):
     """ API endpoint to create a new chat for a user. """
     try:
@@ -17,7 +17,7 @@ def create_chat_endpoint(user_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="User not found")
     return chat
 
-@router.get("/users/{user_id}/chats", response_model=List[ReadChat])
+@router.get("/users/{user_id}/chats", tags=["Chat"], response_model=List[ReadChat])
 def get_user_chats_endpoint(user_id: int, session: Session = Depends(get_session)):
     """ API endpoint to get all chats of a user. """
     try:
@@ -26,7 +26,7 @@ def get_user_chats_endpoint(user_id: int, session: Session = Depends(get_session
         raise HTTPException(status_code=404, detail="User not found")
     return chats
 
-@router.get("/chats/{chat_id}", response_model=ReadChat)
+@router.get("/chats/{chat_id}", tags=["Chat"], response_model=ReadChat)
 def get_chat_by_id_endpoint(chat_id: int, session: Session = Depends(get_session)):
     """ API endpoint to get a chat of a particular id. """
     try:
@@ -34,7 +34,7 @@ def get_chat_by_id_endpoint(chat_id: int, session: Session = Depends(get_session
     except ChatNotFoundException:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-@router.get("/chats/{chat_id}/state", response_model=ReadState)
+@router.get("/chats/{chat_id}/state", tags=["Chat"], response_model=ReadState)
 def get_state_by_id_endpoint(chat_id: int, session: Session = Depends(get_session)):
     """ API endpoint to get a chat fields used by langGraph as state. """
     try:
@@ -42,7 +42,7 @@ def get_state_by_id_endpoint(chat_id: int, session: Session = Depends(get_sessio
     except ChatNotFoundException:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-@router.patch("/chats/{chat_id}", response_model=ReadChat)
+@router.patch("/chats/{chat_id}", tags=["Chat"], response_model=ReadChat)
 def update_chat_endpoint(chat_id: int, to_change: UpdateChat, session: Session = Depends(get_session)):
     """ API endpoint update info of chat of a particular id. """
     try:
@@ -53,7 +53,7 @@ def update_chat_endpoint(chat_id: int, to_change: UpdateChat, session: Session =
         raise HTTPException(status_code=400, detail="No fields provided to update")
     return chat
 
-@router.delete("/chats/{chat_id}", status_code=204)
+@router.delete("/chats/{chat_id}", tags=["Chat"], status_code=204)
 def delete_chat_endpoint(chat_id: int, session: Session = Depends(get_session)):
     """ API endpoint to delete chat of a particular id. """
     try:
