@@ -6,6 +6,7 @@ from langchain_core.messages import BaseMessage, ToolMessage, HumanMessage, AIMe
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from .tool_functions import tools_dict
+from config import COLLECTION_CATEGORIES
 
 logger = get_logger(__name__)
 
@@ -18,7 +19,8 @@ def decide_retrieve(state: GenGraphState) -> GenGraphState:
     
     system = '''
         <|begin_of_text|><|start_header_id|>system<|end_header_id|>
-        You are a helpful assistant with access to company policy documents in two domains: HR and IT.
+        You are a helpful assistant with access to company policy documents in the following domains: 
+        {collection_categories}
         Your task is to decide whether you need to retrieve additional information from the policy database to answer the user's question.
 
         - If you already know the answer or the question is general knowledge, respond with: "SKIP".
@@ -35,7 +37,10 @@ def decide_retrieve(state: GenGraphState) -> GenGraphState:
     chain = prompt | llm 
 
     try:
-        response = chain.invoke({'last_human_message': state['last_human_message']})
+        response = chain.invoke({
+            'last_human_message': state['last_human_message'],
+            'collection_categories': ', '.join(COLLECTION_CATEGORIES)
+        })
         logger.info(f"{response} was returned by llm in decide retrieve node")
     except Exception as e:
         logger.warning(f"Error processing input for retrieval")
