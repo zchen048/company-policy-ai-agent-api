@@ -1,9 +1,10 @@
 import os
 from logger import get_logger
-from config import EMBED_MODEL_PATH, CHROMA_DB_DIR
+from config import EMBED_MODEL_PATH, CHROMA_DB_DIR, CHUNK_SIZE, CHUNK_OVERLAP
 from sqlmodel import Field, Session, select
 from database import get_session_direct
 from exceptions import CollectionNotFoundException, ChunkIDInvalidException, MetadataUpdateException
+from models import DocumentDB
 from typing import List, Dict, Optional, Any
 import hashlib
 from langchain.schema import Document
@@ -105,13 +106,13 @@ class ChunkingUtils:
                 hash_val = hashlib.md5(text.encode("utf-8")).hexdigest()
 
                 # Check for existing hash
-                statement = select(Document).where(Document.hash == hash_val)
+                statement = select(DocumentDB).where(DocumentDB.hash == hash_val)
                 result = session.exec(statement).first()
 
                 if not result:  # new doc → save and keep
                     doc.metadata["doc_hash"] = hash_val # Attach hash into metadata
                     filtered.append(doc)
-                    record = Document(
+                    record = DocumentDB(
                         hash=hash_val,
                         source=doc.metadata.get("source", "unknown"),
                     )
@@ -120,13 +121,12 @@ class ChunkingUtils:
 
         return filtered
     
-    def split_documents(all_documents: List[Document]) -> List[Document]:
+    def split_documents(self, all_documents: List[Document]) -> List[Document]:
         """
         Split pdf documents extracted to chunks.
 
         Args: 
             all_documents (List[Document]): list of pdf files in format of langchain document
-            splitter(Object): text splitter object to split the document into chunks
 
         Returns:
             all_chunks (List[Document]): A list of document chunks extracted from all PDFs.
@@ -485,7 +485,14 @@ class CollectionUtils:
             return None
 
 
+chunking_helper = ChunkingUtils(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
+collection_helper = CollectionUtils(
+    chroma_db_dir=CHROMA_DB_DIR,
+    embed_model_path=EMBED_MODEL_PATH,
+)
 
+# make them available when importing the module
+__all__ = ["chunking_helper", "collection_helper", "ChunkingUtils", "CollectionUtils"]
 
 
 # ====================

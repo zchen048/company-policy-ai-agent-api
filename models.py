@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
-from .utils import sg_datetime
+from utils import sg_datetime
 
 class RankEnum(str, Enum):
     EXECUTIVE = "Executive"
@@ -108,7 +108,7 @@ class Message(SQLModel, table=True):
     chat: Chat = Relationship(back_populates="messages")
 
 
-class Document(SQLModel, table=True):
+class DocumentDB(SQLModel, table=True):
     """
     Represents a document object. 
     
