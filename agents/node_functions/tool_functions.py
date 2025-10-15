@@ -1,6 +1,7 @@
 from langchain_core.tools import tool
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
+from config import NUM_OF_DOCS_RETRIEVED
 
 @tool
 def policy_retrieval_tool(query:str, domain:str):
@@ -30,7 +31,7 @@ def policy_retrieval_tool(query:str, domain:str):
     )
 
     # retrieve relevant information based on query
-    retriever = vector_store.as_retriever(search_kwargs={"k": 2})
+    retriever = vector_store.as_retriever(search_kwargs={"k": NUM_OF_DOCS_RETRIEVED})
     docs = retriever.invoke(query)
 
     # if not docs retrieved

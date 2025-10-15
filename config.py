@@ -24,5 +24,6 @@ CHROMA_DB_DIR = os.path.join(AGENTS_DIR, "policy_vector_db")
 DOCUMENTS_DIR = os.path.join(BASE_DIR, "documents")
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
+NUM_OF_DOCS_RETRIEVED = 3
 
 
