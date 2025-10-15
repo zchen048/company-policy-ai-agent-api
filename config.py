@@ -1,8 +1,5 @@
 import os
 
-# Config to determine generation source
-GEN_TYPE = "GROQ" # or "LOCAL"
-
 # Absolute path to project root
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
