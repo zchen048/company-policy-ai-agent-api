@@ -354,8 +354,47 @@ class CollectionUtils:
                 record = DocumentDB(hash=hash_val, source=source)
                 session.add(record)
             session.commit()
-        
+    
+    def collection_delete_documents(
+        self, 
+        collection: Collection,
+        hashes:List[str]
+    ) -> None:
+        """
+        Delete all chunks from a pdf in selected collection
 
+        Args:
+            collection (Collection): chroma object that stores chunks
+            hashes (List[str]): Hashes corresponding to these documents.
+
+        Returns:
+            None
+        """
+        collection_name = getattr(collection, 'name', 'unknown')
+        if collection is None:
+            raise CollectionNotFoundException(collection_name)
+        
+        if not hashes:
+            logger.info(f"No document hashes provided for deletion in '{collection_name}'.")
+            return
+
+        deleted_hash = []
+        for h in hashes:
+            try:
+                collection.delete(where={"doc_hash": h})
+                deleted_hash.append(h)
+                logger.debug(f"Successfully deleted document(s) with doc_hash '{h}' from '{collection_name}'.")
+            except Exception as e:
+                logger.warning(f"Fail to deleted document(s) with doc_hash '{h}' from '{collection_name}'.")
+        
+        with get_session_direct() as session:
+            for h in deleted_hash:
+                statement = select(DocumentDB).where(DocumentDB.hash == h)
+                record = session.exec(statement).first()
+                if record:
+                    session.delete(record)
+            session.commit()
+            logger.info(f"Successfully removed {len(hashes)} document hash(es) from SQLite DB.")
 
     def metadata_filter_chunks(
         self,
@@ -373,7 +412,6 @@ class CollectionUtils:
             filtered_chunks (Dict[str, Any]): Chunks that contains filter_key in their metadata if filtering succeeds.
         """
         collection_name = getattr(collection, 'name', 'unknown')
-        
         if collection is None:
             raise CollectionNotFoundException(collection_name)
         
