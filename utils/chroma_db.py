@@ -88,7 +88,7 @@ class ChunkingUtils:
     def filter_new_documents(
         self,
         all_documents: List[Document], 
-    ) -> Tuple[List[Document], List[str]]:
+    ) -> Tuple[List[Document], List[str], List[str]]:
         """
         Filter out documents whose content hash already exists in SQLite db.
 
@@ -98,8 +98,9 @@ class ChunkingUtils:
         Returns:
             new_docs (List[Document]): Filtered documents with 'doc_hash' added to metadata.
             new_hashes (List[str]): Corresponding list of hash values for the new documents.
+            new_sources (List[str]): Corresponding source paths from metadata.
         """
-        new_docs, new_hashes  = [], []
+        new_docs, new_hashes, new_sources  = [], [], []
         with get_session_direct() as session:
             for doc in all_documents:
                 # Hash based on document text
@@ -111,11 +112,14 @@ class ChunkingUtils:
                 result = session.exec(statement).first()
 
                 if not result:  # new doc → save and keep
+                    source = doc.metadata.get("source", "unknown")
+
                     doc.metadata["doc_hash"] = hash_val # Attach hash into metadata
                     new_docs.append(doc)
                     new_hashes.append(hash_val)
+                    new_sources.append(source)
 
-        return new_docs, new_hashes
+        return new_docs, new_hashes, new_sources
     
     def split_documents(self, all_documents: List[Document]) -> List[Document]:
         """
@@ -309,15 +313,19 @@ class CollectionUtils:
     
     def collection_add_documents(
         self,
+        collection: Collection,
         chunks:List[Document],
-        collection: Collection
+        new_hash:List[str],
+        new_sources:List[str]
     ) -> None:
         """
         Add chunks from pdfs to specified collection
 
         Args:
-            chunks (List[Document]): pdfs chunks with chunk_id in metadata
             collection (Collection): chroma object that stores chunks
+            chunks (List[Document]): pdfs chunks with chunk_id in metadata
+            new_hashes (List[str]): Hashes corresponding to these documents.
+            new_sources (List[str]): Source corresponding to these documents.
 
         Returns:
             None
@@ -340,6 +348,14 @@ class CollectionUtils:
             logger.info(f"Add pdfs chunks to collection '{collection_name}' successfully.")
         except Exception as e:
             logger.warning(f"Unable to add chunks to collection '{collection_name}': {e}.")
+        
+        with get_session_direct() as session:
+            for hash_val, source in zip(new_hashes, new_sources):
+                record = DocumentDB(hash=hash_val, source=source)
+                session.add(record)
+            session.commit()
+        
+
 
     def metadata_filter_chunks(
         self,
