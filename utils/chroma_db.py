@@ -5,7 +5,7 @@ from sqlmodel import Field, Session, select
 from database import get_session_direct
 from exceptions import CollectionNotFoundException, ChunkIDInvalidException, MetadataUpdateException
 from models import DocumentDB
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Tuple
 import hashlib
 from langchain.schema import Document
 from langchain_community.document_loaders import PyPDFLoader, PyPDFDirectoryLoader
@@ -85,10 +85,10 @@ class ChunkingUtils:
             logger.error(f"Failed to process PDFs in directory {dir_path}: {e}")
             return []
 
-    def filter_by_hash(
+    def filter_new_documents(
         self,
         all_documents: List[Document], 
-    ) -> List[Document]:
+    ) -> Tuple[List[Document], List[str]]:
         """
         Filter out documents whose content hash already exists in SQLite db.
 
@@ -96,9 +96,10 @@ class ChunkingUtils:
             all_documents (List[Document]): List of Document objects loaded from PDFs.
 
         Returns:
-            filtered (List[Document]): Filtered documents with 'doc_hash' added to metadata.
+            new_docs (List[Document]): Filtered documents with 'doc_hash' added to metadata.
+            new_hashes (List[str]): Corresponding list of hash values for the new documents.
         """
-        filtered = []
+        new_docs, new_hashes  = [], []
         with get_session_direct() as session:
             for doc in all_documents:
                 # Hash based on document text
@@ -111,15 +112,10 @@ class ChunkingUtils:
 
                 if not result:  # new doc → save and keep
                     doc.metadata["doc_hash"] = hash_val # Attach hash into metadata
-                    filtered.append(doc)
-                    record = DocumentDB(
-                        hash=hash_val,
-                        source=doc.metadata.get("source", "unknown"),
-                    )
-                    session.add(record)
-                    session.commit()
+                    new_docs.append(doc)
+                    new_hashes.append(hash_val)
 
-        return filtered
+        return new_docs, new_hashes
     
     def split_documents(self, all_documents: List[Document]) -> List[Document]:
         """
