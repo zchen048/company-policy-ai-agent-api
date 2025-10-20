@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
-from .utils import sg_datetime
+from utils import sg_datetime
 
 class RankEnum(str, Enum):
     EXECUTIVE = "Executive"

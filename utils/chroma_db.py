@@ -315,7 +315,7 @@ class CollectionUtils:
         self,
         collection: Collection,
         chunks:List[Document],
-        new_hash:List[str],
+        new_hashes:List[str],
         new_sources:List[str]
     ) -> None:
         """
@@ -419,19 +419,22 @@ class CollectionUtils:
             filtered_chunks = collection.get(
                 where=filter_keys
             )
-            logger.info(f"Filter chunks from collection '{collection_name}' successfully.")
+            if len(filtered_chunks)!=0:
+                logger.info(f"Filter chunks from collection '{collection_name}' successfully.")
+            else:
+                logger.info(f"No results was found.")
             return filtered_chunks
         except Exception as e:
             logger.warning(f"Unable to filter chunks from collection '{collection_name}': {e}.")
             return None
 
-    def delete_chunks(self, collection: Collection, chunks: Dict) -> None:
+    def delete_chunks(self, collection: Collection, chunks_id: Dict) -> None:
         """
         Delete chunks from query from a collection
 
         Args:
             collection (Collection): chroma object that stores chunks
-            chunks (Dict[str, Any]): Chunks that are in the result format of a query
+            chunks_id (List[str]): List of chunk ids
 
         Returns:
             None
@@ -440,14 +443,6 @@ class CollectionUtils:
 
         if collection is None:
             raise CollectionNotFoundException(collection_name)
-        
-        ids_list = chunks.get("ids", [])
-        if not ids_list:
-            logger.info(f"No chunk IDs found in the query result to delete from collection.")
-            return None
-
-        if isinstance(ids_list[0], list):
-            ids_list = [item for sublist in ids_list for item in sublist]
         
         try:
             collection.delete(ids=ids_list)
@@ -503,7 +498,8 @@ class CollectionUtils:
         self,
         collection: Collection,
         query_text: str,
-        filter_keys: Optional[Dict] = None
+        filter_keys: Optional[Dict] = None,
+        n_result:Optional[int]=10
     ) -> Optional[Dict[str, Any]]:
 
         """
@@ -526,6 +522,7 @@ class CollectionUtils:
         try:
             query_result = collection.query(
                 query_texts=[query_text],
+                n_result=n_result,
                 where=filter_keys
             )
             logger.info(f"Query from collection '{collection_name}' successfully.")
