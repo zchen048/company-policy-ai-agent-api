@@ -499,7 +499,7 @@ class CollectionUtils:
         collection: Collection,
         query_text: str,
         filter_keys: Optional[Dict] = None,
-        n_result:Optional[int]=10
+        n_results:Optional[int]=10
     ) -> Optional[Dict[str, Any]]:
 
         """
@@ -522,7 +522,7 @@ class CollectionUtils:
         try:
             query_result = collection.query(
                 query_texts=[query_text],
-                n_result=n_result,
+                n_results=n_results,
                 where=filter_keys
             )
             logger.info(f"Query from collection '{collection_name}' successfully.")
