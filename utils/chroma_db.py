@@ -77,7 +77,7 @@ class ChunkingUtils:
         """
         try:
             # glob for pattern matching, recursive to search subdirectories
-            loader = PyPDFDirectoryLoader(dir_path, glob="*.pdf", recursive=True)
+            loader = PyPDFDirectoryLoader(dir_path, mode="single", glob="*.pdf", recursive=True)
             all_documents = loader.load()
             logger.info(f"{len(all_documents)} documents loaded from directory: {dir_path}")
             return all_documents
