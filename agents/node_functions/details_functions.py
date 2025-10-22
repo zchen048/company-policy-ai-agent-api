@@ -25,9 +25,9 @@ def classify_message_intent(state: DetailsGraphState) -> DetailsGraphState:
         You are a helpful assistant supporting a company policy query bot. 
         Carefully read the entire chat history and the user's most recent message before making your decision. 
         Your job is to classify the most recent message as one of the following:
-        - "Non-policy related" if the message is a greeting, small talk, or not related to company policies.
         - "Policy related — same policy" if the message is a follow-up, clarification, or further question about the same specific company policy discussed earlier in the chat history.
         - "Policy related — different policy" if the message asks about a different company policy than previously discussed.
+        - "Non-policy related" if the message is definitely a greeting or small talk.
 
         Your response must follow the format found between the <result> and </result> tags:
         <result>
@@ -177,6 +177,8 @@ def get_more_details(state: DetailsGraphState) -> DetailsGraphState:
         state['sufficient_details'] = "No"
         state['effective_chat_history'].append(AIMessage(content=answer))
         logger.info(f"Insufficient information provide by user")
+    else:
+        state['sufficient_details'] = "Yes"
     
     logger.debug("-------- Normal exit of get more details node --------")
     return state
@@ -224,6 +226,7 @@ def divert_to_policy(state: DetailsGraphState) -> DetailsGraphState:
         answer = 'Do you have any company policies related queries?'
         logger.warning(f"Regex extract error. Default: {answer}")
 
+    state['effective_chat_history'].append(HumanMessage(content=state['last_user_message']))
     state['effective_chat_history'].append(AIMessage(content=answer))
     
     logger.debug("-------- Normal exit of divert node --------")
