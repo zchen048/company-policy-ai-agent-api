@@ -1,7 +1,7 @@
 import re
 from logger import get_logger
 from ..graph_states import GenGraphState
-from ..llms import llm
+from ..llms import llm, llm2
 from langchain_core.messages import BaseMessage, ToolMessage, HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
@@ -30,15 +30,15 @@ def decide_retrieve(state: GenGraphState) -> GenGraphState:
     '''
     human = '''
         Here is the user input:
-        {last_human_message}
+        {last_user_message}
     '''
 
     prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)])
-    chain = prompt | llm 
+    chain = prompt | llm2
 
     try:
         response = chain.invoke({
-            'last_human_message': state['last_human_message'],
+            'last_user_message': state['last_user_message'],
             'collection_categories': ', '.join(COLLECTION_CATEGORIES)
         })
         logger.info(f"{response} was returned by llm in decide retrieve node")
@@ -63,7 +63,8 @@ def need_retrieve(state: GenGraphState) -> GenGraphState:
     logger.debug("-------- Entering retrieve check conditional edge --------")
     
     res = state['tool_invoke'][-1]
-    return hasattr(res, 'tool_invoke') and len(res.tool_calls)>0
+    logger.info(f"res: {res}")
+    return hasattr(res, 'tool_calls') and len(res.tool_calls)>0
 
 def retrieve_policy(state: GenGraphState) -> GenGraphState:
     '''
@@ -112,7 +113,7 @@ def document_summary(state: GenGraphState) -> GenGraphState:
         return state
     
     documents = state['tool_invoke'][-1][-1].content
-    query = state['last_human_message']
+    query = state['last_user_message']
 
     system = '''
         <|begin_of_text|><|start_header_id|>system<|end_header_id|>
@@ -230,18 +231,18 @@ def answer_user_query(state: GenGraphState) -> GenGraphState:
     
     human = '''
         Here is the user input:
-        {last_human_message}
+        {last_user_message}
 
         Carefully analyze the input and provide concise answer.
         <|eot_id|><|start_header_id|>assistant<|end_header_id|>
     '''
 
     prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)])
-    chain = prompt | llm 
+    chain = prompt | llm
 
     try:
         response = chain.invoke({
-            'last_human_message': state['last_human_message'],
+            'last_user_message': state['last_user_message'],
             'messages': state['effective_chat_history'],
             'context': state['document_summary']
         })

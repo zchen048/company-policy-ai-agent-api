@@ -11,4 +11,9 @@ llm = ChatGroq(
     temperature=0
 )
 
-llm = llm.bind_tools(tools)
+llm2 = ChatGroq(
+    model="llama-3.1-8b-instant", # llama3-8b-8192
+    temperature=0
+)
+
+llm2 = llm2.bind_tools(tools)
