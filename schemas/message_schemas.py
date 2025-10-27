@@ -13,3 +13,6 @@ class ReadMessages(BaseModel):
     class Config:
         orm_mode = True
 
+class LastUserMessage(BaseModel):
+    message: str
+

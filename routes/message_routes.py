@@ -2,7 +2,7 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session
 from ..database import get_session
-from ..schemas.message_schemas import ReadMessages
+from ..schemas.message_schemas import ReadMessages, LastUserMessage
 from ..logic.message_logic import get_chat_eff, get_chat_messages
 
 router = APIRouter()
@@ -29,4 +29,3 @@ def get_chat_messages_endpoint(
     except ChatNotFoundException:
         raise HTTPException(status_code=404, detail="Chat not found")
     return messages
-
