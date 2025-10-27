@@ -29,3 +29,11 @@ def get_chat_messages_endpoint(
     except ChatNotFoundException:
         raise HTTPException(status_code=404, detail="Chat not found")
     return messages
+
+@router.post("/chats/{chat_id}/query")
+def query_agent_endpoint(chat_id: int, query: LastUserMessage, session: Session = Depends(get_session)):
+    try:
+        response = query_agent(session=session, chat_id=chat_id, last_user_message=query.message)
+    except ChatNotFoundException:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    return {"Agent response": response}
