@@ -49,9 +49,10 @@ This section list any major frameworks/technologies used to build this project.
    pip install -r requirements.txt
    ```
 4. Get a [Groq API Key](https://groq.com/) and save in a `.env` file
-5. Run the development server:
+5. Create a directory for local models and download model to it.
+6. Run the development server:
    ```sh
-   fastapi dev main.py --port PORT_NUMBER
+   python -m uvicorn main:app --reload --PORT_NUMBER
    ```
 
 <br />
@@ -59,7 +60,7 @@ This section list any major frameworks/technologies used to build this project.
 ## Usage
 Once the API is running, you can test the RAG Query Agent in two ways:
 1. Using a tool like Postman  
-   - Send a POST request to the `/message/query` endpoint with your input JSON to query the agent
+   - Send a POST request to the `/chats/{chat_id}/query` endpoint with your input JSON to query the agent
    - Example payload:
      ```json
      {
