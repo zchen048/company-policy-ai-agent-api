@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session
 from ..database import get_session
 from ..schemas.message_schemas import ReadMessages, LastUserMessage
-from ..logic.message_logic import get_chat_eff, get_chat_messages
+from ..logic.message_logic import get_chat_eff, get_chat_messages, query_agent
 
 router = APIRouter()
 

@@ -178,6 +178,7 @@ def get_more_details(state: DetailsGraphState) -> DetailsGraphState:
         state['effective_chat_history'].append(AIMessage(content=answer))
         logger.info(f"Insufficient information provide by user")
     else:
+        state['effective_chat_history'].pop()
         state['sufficient_details'] = "Yes"
     
     logger.debug("-------- Normal exit of get more details node --------")
@@ -228,6 +229,7 @@ def divert_to_policy(state: DetailsGraphState) -> DetailsGraphState:
 
     state['effective_chat_history'].append(HumanMessage(content=state['last_user_message']))
     state['effective_chat_history'].append(AIMessage(content=answer))
+    state['sufficient_details'] = "No"
     
     logger.debug("-------- Normal exit of divert node --------")
     return state

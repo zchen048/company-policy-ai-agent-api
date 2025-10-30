@@ -88,7 +88,7 @@ def retrieve_policy(state: GenGraphState) -> GenGraphState:
                 "query":t['args'].get('query', ''),
                 "domain":t['args'].get('domain', '')
             })
-            logger.info(f"result: {result} from a tool call performed")
+            logger.debug(f"result: {result} from a tool call performed")
         results.append(
             ToolMessage(
                 tool_call_id = t['id'], 
@@ -251,6 +251,7 @@ def answer_user_query(state: GenGraphState) -> GenGraphState:
         logger.warning(f"Error occured during generation: {e}")
         response = "Error generating"
     
+    state['effective_chat_history'].append(HumanMessage(content=state['last_user_message']))
     state['effective_chat_history'].append(response)
     
     logger.debug("-------- Normal exit of answer user query node --------")
