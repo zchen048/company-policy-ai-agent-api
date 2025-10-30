@@ -1,4 +1,4 @@
-# RAG Company Policy Query Agent API (Work in progress)
+# RAG Company Policy Query Agent API
 
 <br />
 
