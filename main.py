@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from .database import init_db
-from .routes import user_routes, chat_routes, message_routes
+from database import init_db
+from routes import user_routes, chat_routes, message_routes
 
 app = FastAPI()
 

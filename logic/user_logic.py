@@ -1,10 +1,10 @@
 from typing import Optional, List, Union
 from sqlmodel import Session, select
-from ..models import RankEnum, User
-from ..schemas.user_schemas import UpdateUser
-from ..utils import sg_datetime
-from ..logger import get_logger
-from ..exceptions import UserNotFoundException, NoFieldsToUpdateException
+from models import RankEnum, User
+from schemas.user_schemas import UpdateUser
+from utils import sg_datetime
+from logger import get_logger
+from exceptions import UserNotFoundException, NoFieldsToUpdateException
 
 logger = get_logger(__name__)
 

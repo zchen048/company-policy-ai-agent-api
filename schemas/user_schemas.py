@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field
-from ..models import RankEnum
+from models import RankEnum
 
 class CreateUser(BaseModel):
     name: str = Field(

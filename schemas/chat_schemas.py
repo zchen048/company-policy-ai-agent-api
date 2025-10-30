@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field
-from .. models import IntentEnum
+from models import IntentEnum
 
 class ReadChat(BaseModel):
     id: int = Field(..., description="id given to the chat")

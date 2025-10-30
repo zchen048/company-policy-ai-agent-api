@@ -1,9 +1,10 @@
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session
-from ..database import get_session
-from ..schemas.message_schemas import ReadMessages, LastUserMessage
-from ..logic.message_logic import get_chat_eff, get_chat_messages, query_agent
+from database import get_session
+from schemas.message_schemas import ReadMessages, LastUserMessage
+from logic.message_logic import get_chat_eff, get_chat_messages, query_agent
+from exceptions import ChatNotFoundException
 
 router = APIRouter()
 
@@ -30,7 +31,7 @@ def get_chat_messages_endpoint(
         raise HTTPException(status_code=404, detail="Chat not found")
     return messages
 
-@router.post("/chats/{chat_id}/query")
+@router.post("/chats/{chat_id}/query", tags=["Message"])
 def query_agent_endpoint(chat_id: int, query: LastUserMessage, session: Session = Depends(get_session)):
     try:
         response = query_agent(session=session, chat_id=chat_id, last_user_message=query.message)

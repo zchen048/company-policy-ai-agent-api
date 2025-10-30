@@ -1,10 +1,14 @@
 from typing import Optional, List, Union
 from sqlmodel import Session, select
+from langchain_core.messages import BaseMessage, ToolMessage, HumanMessage, AIMessage
 from sqlalchemy import update
-from ..models import RoleEnum, Chat, Message
-from ..utils import sg_datetime
-from ..exceptions import ChatNotFoundException
-from ..logger import get_logger
+from agents.graphs.details_subgraph import details_graph
+from agents.graphs.gen_subgraph import gen_graph
+from models import RoleEnum, Chat, Message
+from utils import sg_datetime
+from exceptions import ChatNotFoundException
+from logger import get_logger
+
 
 logger = get_logger(__name__)
 
@@ -21,7 +25,7 @@ def get_chat_eff(session: Session, chat_id: int) -> List[Message]:
     ).all()
 
     logger.info(f"Getting all effective chat messages from chat of id `{chat_id}`")
-    return chats
+    return messages
 
 def get_chat_messages(session: Session, chat_id: int) -> List[Message]:
     """ Get all message of a chat."""
@@ -35,7 +39,7 @@ def get_chat_messages(session: Session, chat_id: int) -> List[Message]:
         select(Message).where(Message.chat_id == chat_id)
     ).all()
     logger.info(f"Getting all chat messages from chat of id `{chat_id}`")
-    return chats
+    return messages
 
 def query_agent(session: Session, chat_id: int, last_user_message: str) -> str:
     # Get necessary state: chat_history, document_summary, last_intent

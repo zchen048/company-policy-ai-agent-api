@@ -1,10 +1,10 @@
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
-from ..database import get_session
-from ..schemas.chat_schemas import ReadChat, ReadState, UpdateChat
-from ..logic.chat_logic import create_chat, get_user_chats, get_chat_by_id, update_chat, delete_chat
-from ..exceptions import UserNotFoundException, ChatNotFoundException, NoFieldsToUpdateException
+from database import get_session
+from schemas.chat_schemas import ReadChat, ReadState, UpdateChat
+from logic.chat_logic import create_chat, get_user_chats, get_chat_by_id, update_chat, delete_chat
+from exceptions import UserNotFoundException, ChatNotFoundException, NoFieldsToUpdateException
 
 router = APIRouter()
 
